@@ -6,14 +6,14 @@ USE employeeTrackerDB;
 -- department table
 CREATE TABLE departmentTable (
     id INT AUTO_INCREMENT NOT NULL,
-    name VARCHAR(30) NOT NULL,
+    department VARCHAR(30) NOT NULL,
     PRIMARY KEY (id)
 );
 
 -- role table 
 CREATE TABLE roleTable (
     id INT AUTO_INCREMENT NOT NULL,
-    title VARCHAR(30) NOT NULL,
+    job_title VARCHAR(30) NOT NULL,
     salary DECIMAL(10,2) NOT NULL,
     department_id INT NOT NULL,
     PRIMARY KEY (id),
