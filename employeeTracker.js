@@ -99,6 +99,7 @@ function runViewData() {
                 "View All Employees",
                 "View All Roles",
                 "View All Departments",
+                "View All Employees By Department",
                 "Return to Main Page"
             ]
         })
@@ -114,6 +115,10 @@ function runViewData() {
                 
                 case "View All Departments":
                     runViewDepartments();
+                    break;
+
+                case "View All Employees By Department":
+                    runViewEmployeesByDep();
                     break;
 
                 case "Return to Main Page":
@@ -165,7 +170,66 @@ function runViewDepartments() {
         runMainPage();
     })
 };
+
 // view all employees by department – bonus
+function runViewEmployeesByDep() {
+    var query = "SELECT * FROM departmentTable";
+
+    connection.query(query, function(error, response) {
+        // will be filled with unique departments for user to choose from
+        let departmentOptions = [];
+
+        // collect all unique department options
+        response.forEach(function({ department }, i) {
+            if (department) {
+                
+                for (var i = 0; i < department.length; i++){
+                    if(!departmentOptions.includes(department)){
+                        departmentOptions.push(department);
+                    }
+                    
+                }
+                
+            }
+        })
+
+        inquirer
+            .prompt([
+                {
+                    name: "viewDepName",
+                    type: "list",
+                    message: "Which department would you like to see employees for?",
+                    choices: departmentOptions
+                }
+            ]) 
+            .then(function(response) {
+                // identify department id
+                let departmentIndex = 0;
+                for (let i = 0; i < departmentOptions.length; i++) {
+                    if (response.newRoleDepartment === departmentOptions[i]) {
+                        departmentIndex = i + 1;
+                    }
+                }
+
+                var query = 'SELECT employeeTable.id AS "ID", employeeTable.first_name AS "First Name", employeeTable.last_name AS "Last Name", departmentTable.department AS "Department" ';
+                query += "FROM employeeTable ";
+                query += "INNER JOIN roleTable ON employeeTable.role_id = roleTable.id ";
+                query += "INNER JOIN departmentTable ON roleTable.department_id = departmentTable.id "
+                query += "WHERE departmentTable.department = " + "'" + response.viewDepName + "'";
+
+                connection.query(query, function(error, response) {
+                    connection.query(query, function(error, response) {
+                        if (error) throw error;
+                        console.log(`\n`)
+                        console.table(response);
+                        runMainPage();
+                    })
+                })
+            })
+    })
+     
+}
+
 // View all employees by manager – bonus
 // view department’s total utilized budget – bonus 
 
