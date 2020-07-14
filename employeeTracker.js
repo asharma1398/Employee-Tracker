@@ -296,7 +296,7 @@ function runAddEmployee() {
                 connection.query(insertion, [response.empFirstName, response.empLastName, roleIndex, managerIndex], function(error, response) {
                     if (error) throw error;
 
-                    console.log("\n             --- You have successfully added a new employee! ---\n");
+                    console.log("\n                 --- You have successfully added a new employee! ---\n");
                     runMainPage();
                 })
             })            
@@ -361,7 +361,7 @@ function runAddRole() {
                 connection.query(insertion, [response.newJobTitle, response.newSalary, departmentIndex], function (error, response) {
                     if (error) throw error;
 
-                    console.log("\n             --- You have successfully added a new role! ---\n");
+                    console.log("\n                 --- You have successfully added a new role! ---\n");
                     runMainPage();
                 })
             })
@@ -370,7 +370,24 @@ function runAddRole() {
 
 // add department 
 function runAddDepartment() {
-    
+    inquirer
+        .prompt([
+            {
+                name: "newDepartment",
+                type: "input",
+                message: "What is the name of the new department?"
+            }
+        ])
+        .then(function(response) {
+            var insertion = "INSERT INTO departmentTable (department) VALUES (?)";
+
+            connection.query(insertion, [response.newDepartment], function(error, response) {
+                if (error) throw error;
+
+                    console.log("\n                 --- You have successfully added a new Department! ---\n");
+                    runMainPage();
+            })
+        })
 };
 
 // REMOVE DATA OPTION
