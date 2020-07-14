@@ -170,8 +170,10 @@ function runViewRoles() {
 
 // view all departments 
 function runViewDepartments() {
-    var query = `SELECT departmentTable.id AS "ID", departmentTable.department AS "Department" `;
-    query += "FROM departmentTable";
+    var query = `SELECT departmentTable.id AS "ID", departmentTable.department AS "Department", SUM(roleTable.salary) AS "Utilized Budget" `;
+    query += "FROM departmentTable ";
+    query += "INNER JOIN roleTable ON departmentTable.id = roleTable.department_id "
+    query += "GROUP BY roleTable.department_id"
 
     connection.query(query, function(error, response) {
         if (error) throw error;
@@ -238,12 +240,12 @@ function runViewEmployeesByDep() {
             })
     })
      
-}
+};
 
-// View all employees by manager – bonus
+// View all employees by manager 
 function runViewEmployeeByManager() {
     var query = "SELECT employeeTable.id AS employeeID, CONCAT(employeeTable.first_name, ' ', employeeTable.last_name) AS employee ";
-    query += "FROM employeeTable"
+    query += "FROM employeeTable";
 
     connection.query(query, function(error, response) {
         if (error) throw error;
@@ -291,7 +293,7 @@ function runViewEmployeeByManager() {
     })
 
     
-}
+};
 
 // view department’s total utilized budget  
 function runViewDepTotalBudget() {
@@ -350,7 +352,7 @@ function runViewDepTotalBudget() {
             })
     })
      
-}
+};
 
 // ADD DATA OPTION
 function runAddData() {
@@ -575,9 +577,96 @@ function runAddDepartment() {
 };
 
 // REMOVE DATA OPTION
+function runRemoveData() {
+    inquirer
+        .prompt({
+            name: "removeDataPrompts",
+            type: "list",
+            message: "Please select from the options below:",
+            choices: [
+                "Remove Employee",
+                "Remove Role",
+                "Remove Department",
+                "Return to Main Page"
+            ]
+        })
+        .then(function(response) {
+            switch (response.removeDataPrompts) {
+                case "Remove Employee":
+                    runRemoveEmployee();
+                    break;
+                
+                case "Remove Role":
+                    runRemoveRole();
+                    break;
+
+                
+                case "Remove Department":
+                    runRemoveDepartment();
+                    break;
+
+                case "Return to Main Page":
+                    runMainPage();
+                    break;
+            }
+        })
+};
+
 // remove employee - bonus
+function runRemoveEmployee() {
+    var query = "SELECT employeeTable.id AS employeeID, CONCAT(employeeTable.first_name, ' ', employeeTable.last_name) AS employee ";
+    query += "FROM employeeTable";
+
+    connection.query(query, function(error, response) {
+        if (error) throw error;
+
+        // will be filled with employees for user to choose from
+        let employeeOptions = [];
+
+        // populate employee options 
+        response.forEach(function({ employee }, i) {
+            employeeOptions.push(employee);
+        })
+
+        inquirer
+        .prompt([
+            {
+                name: "employeeChoice",
+                type: "list",
+                message: "Which employee would you like to remove?",
+                choices: employeeOptions 
+            }
+        ])
+        .then(function(response) {
+            // identify employee id
+            let employeeIndex = 0;
+            for (let i = 0; i < employeeOptions.length; i++) {
+                if (response.employeeChoice === employeeOptions[i]) {
+                    employeeIndex = i + 1;
+                }
+            }
+
+            var query = "DELETE FROM employeeTable WHERE CONCAT(first_name, ' ', last_name) = " + "'" + response.employeeChoice + "' ";
+
+            connection.query(query, function(error, response) {
+                    
+                console.log("\n                 --- You have successfully removed an employee! ---\n");
+                    runMainPage();
+            
+            })
+        })
+    })
+};
+
 // remove role - bonus
+function runRemoveRole() {
+
+};
 // remove department – bonus
+
+function runRemoveDepartment() {
+
+}
 
 // UPDATE DATA OPTION
 function runUpdateData() {
@@ -682,5 +771,4 @@ function runUpdateEmployeeRole() {
                 })
             })
     })
-}
-// update employee manager – bonus 
+};
