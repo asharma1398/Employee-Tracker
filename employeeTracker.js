@@ -220,7 +220,6 @@ function runAddEmployee() {
         // will be filled with unique managers for user to choose from
         let managerOptions = [];
 
-
         // collect all unique role options 
         response.forEach(function({ role }, i) {
             
@@ -235,7 +234,6 @@ function runAddEmployee() {
                 
             }
         })
-        
 
         // collect all unique manger options 
         response.forEach(function({ employee }, i) {
@@ -284,7 +282,6 @@ function runAddEmployee() {
                         roleIndex = i + 1;
                     }
                 }
-                // console.log(roleIndex);
 
                 // identify manager id
                 let managerIndex = 0;
@@ -293,14 +290,13 @@ function runAddEmployee() {
                         managerIndex = i + 1;
                     }
                 }
-                // console.log(managerIndex);
 
-                var insertion = "INSERT INTO employeeTable (first_name, last_name, role_id, manager_id) VALUES (?, ?, ?, ?)";
+                var insertion = "INSERT INTO employeeTable (first_name, last_name, role_id, manager_id) VALUES ( ?, ?, ?, ?)";
 
                 connection.query(insertion, [response.empFirstName, response.empLastName, roleIndex, managerIndex], function(error, response) {
                     if (error) throw error;
 
-                    console.log("\n             --- You have successfully added an employee! ---\n");
+                    console.log("\n             --- You have successfully added a new employee! ---\n");
                     runMainPage();
                 })
             })            
@@ -310,7 +306,66 @@ function runAddEmployee() {
 
 // add role 
 function runAddRole() {
+    var query = "SELECT * FROM departmentTable";
 
+    connection.query(query, function(error, response) {
+        if (error) throw error;
+
+        // will be filled with unique departments for user to choose from
+        let departmentOptions = [];
+
+        response.forEach(function({ department }, i) {
+            if (department) {
+                
+                for (var i = 0; i < department.length; i++){
+                    if(!departmentOptions.includes(department)){
+                        departmentOptions.push(department);
+                    }
+                    
+                }
+                
+            }
+        })
+
+        inquirer
+            .prompt([
+                {
+                    name: "newJobTitle",
+                    type: "input",
+                    message: "What is the name of the new job title?"
+
+                },
+                {
+                    name: "newSalary",
+                    type: "input",
+                    message: "What is the salary for the new role?"
+                },
+                {
+                    name: "newRoleDepartment",
+                    type: "list",
+                    message: "Which department does the role belong to?",
+                    choices: departmentOptions
+                }
+            ])
+            .then(function(response) {
+                // identify department id
+                let departmentIndex = 0;
+                for (let i = 0; i < departmentOptions.length; i++) {
+                    if (response.newRoleDepartment === departmentOptions[i]) {
+                        departmentIndex = i + 1;
+                    }
+                }
+                
+                var insertion = "INSERT INTO roleTable (job_title, salary, department_id) VALUES ( ?, ?, ?)"
+
+                connection.query(insertion, [response.newJobTitle, response.newSalary, departmentIndex], function (error, response) {
+                    if (error) throw error;
+
+                    console.log("\n             --- You have successfully added a new role! ---\n");
+                    runMainPage();
+                })
+            })
+    })
 };
 
 // add department 
