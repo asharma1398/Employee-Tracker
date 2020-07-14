@@ -170,10 +170,8 @@ function runViewRoles() {
 
 // view all departments 
 function runViewDepartments() {
-    var query = `SELECT departmentTable.id AS "ID", departmentTable.department AS "Department", SUM(roleTable.salary) AS "Utilized Budget" `;
-    query += "FROM departmentTable ";
-    query += "INNER JOIN roleTable ON departmentTable.id = roleTable.department_id "
-    query += "GROUP BY roleTable.department_id"
+    var query = `SELECT departmentTable.id AS "ID", departmentTable.department AS "Department" `
+    query += "FROM departmentTable";
 
     connection.query(query, function(error, response) {
         if (error) throw error;
@@ -188,6 +186,7 @@ function runViewEmployeesByDep() {
     var query = "SELECT * FROM departmentTable";
 
     connection.query(query, function(error, response) {
+        if (error) throw error;
         // will be filled with unique departments for user to choose from
         let departmentOptions = [];
 
@@ -230,12 +229,12 @@ function runViewEmployeesByDep() {
                 query += "WHERE departmentTable.department = " + "'" + response.viewDepName + "'";
 
                 connection.query(query, function(error, response) {
-                    connection.query(query, function(error, response) {
+                    
                         if (error) throw error;
                         console.log(`\n`)
                         console.table(response);
                         runMainPage();
-                    })
+                    
                 })
             })
     })
@@ -642,7 +641,7 @@ function runRemoveEmployee() {
             var deletion = "DELETE FROM employeeTable WHERE CONCAT(first_name, ' ', last_name) = " + "'" + response.employeeChoice + "' ";
 
             connection.query(deletion, function(error, response) {
-                    
+                if (error) throw error;    
                 console.log("\n                 --- You have successfully removed an employee! ---\n");
                 runMainPage();
             
@@ -702,7 +701,51 @@ function runRemoveRole() {
 
 // remove department
 function runRemoveDepartment() {
+    var query = "SELECT * FROM departmentTable";
 
+    connection.query(query, function(error, response) {
+        if (error) throw error;
+
+        // will be filled with unique departments for user to choose from
+        let departmentOptions = [];
+
+        // collect all unique department options
+        response.forEach(function({ department }, i) {
+            if (department) {
+                
+                for (var i = 0; i < department.length; i++){
+                    if(!departmentOptions.includes(department)){
+                        departmentOptions.push(department);
+                    }
+                    
+                }
+                
+            }
+        })
+
+        inquirer
+            .prompt([
+                {
+                    name: "DepChoice",
+                    type: "list",
+                    message: "Which department would you like to remove?",
+                    choices: departmentOptions
+                }
+            ]) 
+            .then(function(response) {
+                
+                var deletion = "DELETE FROM departmentTable WHERE department = " + "'" + response.DepChoice + "' ";
+
+                connection.query(deletion, function(error, response) {
+                    
+                        if (error) throw error;
+                        console.log("\n                 --- You have successfully removed a department! ---\n");
+                        runMainPage();
+                    
+                })
+            })
+
+    })
 }
 
 // UPDATE DATA OPTION
