@@ -137,7 +137,7 @@ function runViewEmployees() {
         console.table(response);
         runMainPage();
     })
-}
+};
 
 // view all roles 
 function runViewRoles() {
@@ -151,7 +151,7 @@ function runViewRoles() {
         console.table(response);
         runMainPage();
     })
-}
+};
 
 // view all departments 
 function runViewDepartments() {
@@ -164,16 +164,159 @@ function runViewDepartments() {
         console.table(response);
         runMainPage();
     })
-}
+};
 // view all employees by department – bonus
 // View all employees by manager – bonus
 // view department’s total utilized budget – bonus 
 
 // ADD DATA OPTION
-// add employee
-// add role 
-// add department 
+function runAddData() {
+    inquirer
+        .prompt({
+            name: "addDataPrompts",
+            type: "list",
+            message: "Please select from the options below:",
+            choices: [
+                "Add Employee",
+                "Add Role",
+                "Add Department",
+                "Return to Main Page"
+            ]
+        })
+        .then(function(response) {
+            switch (response.addDataPrompts) {
+                case "Add Employee":
+                    runAddEmployee();
+                    break;
+                
+                case "Add Role":
+                    runAddRole();
+                    break;
 
+                
+                case "Add Department":
+                    runAddDepartment();
+                    break;
+
+                case "Return to Main Page":
+                    runMainPage();
+                    break;
+            }
+        })
+};
+
+// add employee
+function runAddEmployee() {
+    var query = `SELECT employeeTable.id AS employeeID, CONCAT(employeeTable.first_name, ' ', employeeTable.last_name) AS employee, roleTable.id AS roleID, roleTable.job_title AS role `;
+    query += "FROM employeeTable ";
+    query += "RIGHT JOIN roleTable ON employeeTable.role_id = roleTable.id"
+
+    connection.query(query, function(error, response) {
+        if (error) throw error;
+        
+        // will be filled with unique roles for user to choose from
+        let roleOptions = [];
+  
+        // will be filled with unique managers for user to choose from
+        let managerOptions = [];
+
+
+        // collect all unique role options 
+        response.forEach(function({ role }, i) {
+            
+            if (role) {
+                
+                for (var i = 0; i < role.length; i++){
+                    if(!roleOptions.includes(role)){
+                        roleOptions.push(role);
+                    }
+                    
+                }
+                
+            }
+        })
+        
+
+        // collect all unique manger options 
+        response.forEach(function({ employee }, i) {
+
+            if (employee) {
+                
+                for (var i = 0; i < employee.length; i++){
+                    if(!managerOptions.includes(employee)){
+                        managerOptions.push(employee);
+                    }
+                }
+                
+            }
+        })
+
+        inquirer
+            .prompt([
+                {
+                    name: "empFirstName",
+                    type: "input",
+                    message: "What is the employee's first name?"
+                },
+                {
+                    name: "empLastName",
+                    type: "input",
+                    message: "What is the employee's last name?"
+                },
+                {
+                    name: "empRole",
+                    type: "list",
+                    message: "What is the employee's role?",
+                    choices: roleOptions
+                },
+                {
+                    name: "empManager",
+                    type: "list",
+                    message: "Who is the employee's manager?",
+                    choices: managerOptions
+                }
+            ])
+            .then(function(response) {
+                // identify role id
+                let roleIndex = 0;
+                for (let i = 0; i < roleOptions.length; i++) {
+                    if (response.empRole === roleOptions[i]) {
+                        roleIndex = i + 1;
+                    }
+                }
+                // console.log(roleIndex);
+
+                // identify manager id
+                let managerIndex = 0;
+                for (let i = 0; i < managerOptions.length; i++) {
+                    if (response.empManager === managerOptions[i]) {
+                        managerIndex = i + 1;
+                    }
+                }
+                // console.log(managerIndex);
+
+                var insertion = "INSERT INTO employeeTable (first_name, last_name, role_id, manager_id) VALUES (?, ?, ?, ?)";
+
+                connection.query(insertion, [response.empFirstName, response.empLastName, roleIndex, managerIndex], function(error, response) {
+                    if (error) throw error;
+
+                    console.log("\n             --- You have successfully added an employee! ---\n");
+                    runMainPage();
+                })
+            })            
+
+    })
+};
+
+// add role 
+function runAddRole() {
+
+};
+
+// add department 
+function runAddDepartment() {
+    
+};
 
 // REMOVE DATA OPTION
 // remove employee - bonus
