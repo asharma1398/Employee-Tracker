@@ -612,7 +612,7 @@ function runRemoveData() {
         })
 };
 
-// remove employee - bonus
+// remove employee 
 function runRemoveEmployee() {
     var query = "SELECT employeeTable.id AS employeeID, CONCAT(employeeTable.first_name, ' ', employeeTable.last_name) AS employee ";
     query += "FROM employeeTable";
@@ -638,32 +638,69 @@ function runRemoveEmployee() {
             }
         ])
         .then(function(response) {
-            // identify employee id
-            let employeeIndex = 0;
-            for (let i = 0; i < employeeOptions.length; i++) {
-                if (response.employeeChoice === employeeOptions[i]) {
-                    employeeIndex = i + 1;
-                }
-            }
+           
+            var deletion = "DELETE FROM employeeTable WHERE CONCAT(first_name, ' ', last_name) = " + "'" + response.employeeChoice + "' ";
 
-            var query = "DELETE FROM employeeTable WHERE CONCAT(first_name, ' ', last_name) = " + "'" + response.employeeChoice + "' ";
-
-            connection.query(query, function(error, response) {
+            connection.query(deletion, function(error, response) {
                     
                 console.log("\n                 --- You have successfully removed an employee! ---\n");
-                    runMainPage();
+                runMainPage();
             
             })
         })
     })
 };
 
-// remove role - bonus
+// remove role 
 function runRemoveRole() {
+     var query = `SELECT roleTable.id AS roleID, roleTable.job_title AS role `;
+     query += "FROM roleTable";
 
+     connection.query(query, function(error, response) {
+        if (error) throw error;
+
+        // will be filled with unique roles for user to choose from
+        let roleOptions = [];
+
+        // collect all unique role options 
+        response.forEach(function({ role }, i) {
+            
+            if (role) {
+                
+                for (var i = 0; i < role.length; i++){
+                    if(!roleOptions.includes(role)){
+                        roleOptions.push(role);
+                    }
+                    
+                }
+                
+            }
+        })
+
+        inquirer
+            .prompt([
+                {
+                    name: "roleDeletion",
+                    type: "list",
+                    message: "Which role would you like to remove?",
+                    choices: roleOptions
+                }
+            ])
+            .then(function(response) {
+               
+                var deletion = "DELETE FROM roleTable WHERE job_title = " + "'" + response.roleDeletion + "' ";;
+
+                connection.query(deletion, function(error, response) {
+                    if (error) throw error;
+
+                    console.log("\n                 --- You have successfully removed a role! ---\n");
+                    runMainPage();
+                })
+            })
+     })
 };
-// remove department – bonus
 
+// remove department
 function runRemoveDepartment() {
 
 }
