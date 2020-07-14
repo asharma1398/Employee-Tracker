@@ -314,6 +314,7 @@ function runAddRole() {
         // will be filled with unique departments for user to choose from
         let departmentOptions = [];
 
+        // collect all unique department options
         response.forEach(function({ department }, i) {
             if (department) {
                 
@@ -396,5 +397,107 @@ function runAddDepartment() {
 // remove department – bonus
 
 // UPDATE DATA OPTION
+function runUpdateData() {
+    inquirer
+        .prompt({
+            name: "updateDataPrompts",
+            type: "list",
+            message: "Please select from the options below:",
+            choices: [
+                "Update Employee Role",
+                "Return to Main Page"
+            ]
+        })
+        .then(function(response) {
+            switch (response.updateDataPrompts) {
+                case "Update Employee Role":
+                    runUpdateEmployeeRole();
+                    break;
+            
+                case "Return to Main Page":
+                    runMainPage();
+                    break;
+            }
+        })
+};
+
 // update employee role
+function runUpdateEmployeeRole() {
+    var query = `SELECT employeeTable.id AS employeeID, CONCAT(employeeTable.first_name, ' ', employeeTable.last_name) AS employee, roleTable.id AS roleID, roleTable.job_title AS role `;
+    query += "FROM employeeTable ";
+    query += "RIGHT JOIN roleTable ON employeeTable.role_id = roleTable.id"
+
+    connection.query(query, function(error, response) {
+        if (error) throw error;
+
+        // will be filled with employees for user to choose from
+        let employeeOptions = [];
+
+        // will be filled with unique roles for user to choose from
+        let roleOptions = [];
+
+        // populate employee options 
+        response.forEach(function({ employee }, i) {
+            employeeOptions.push(employee);
+        })
+
+        // collect all unique role options 
+        response.forEach(function({ role }, i) {
+            
+            if (role) {
+                
+                for (var i = 0; i < role.length; i++){
+                    if(!roleOptions.includes(role)){
+                        roleOptions.push(role);
+                    }
+                    
+                }
+                
+            }
+        })
+
+        inquirer
+            .prompt([
+                {
+                    name: "employeeChoice",
+                    type: "list",
+                    message: "Choose which employee to update from the options below:",
+                    choices: employeeOptions
+                },
+                {
+                    name: "newRoleAssignment",
+                    type: "list",
+                    message: "Which role do you want to assign the selected employee?",
+                    choices: roleOptions
+                }
+            ])
+            .then(function(response) {
+
+                // identify employee id
+                let employeeIndex = 0;
+                for (let i = 0; i < employeeOptions.length; i++) {
+                    if (response.employeeChoice === employeeOptions[i]) {
+                        employeeIndex = i + 1;
+                    }
+                }
+
+                // identify role id
+                let roleIndex = 0;
+                for (let i = 0; i < roleOptions.length; i++) {
+                    if (response.newRoleAssignment === roleOptions[i]) {
+                        roleIndex = i + 1;
+                    }
+                }
+
+                var update = "UPDATE employeeTable SET role_id = ? WHERE id = ?";
+
+                connection.query(update, [roleIndex, employeeIndex], function(error, response) {
+                    if (error) throw error;
+
+                    console.log("\n                 --- You have successfully updated an employee's role! ---\n");
+                    runMainPage();
+                })
+            })
+    })
+}
 // update employee manager – bonus 
