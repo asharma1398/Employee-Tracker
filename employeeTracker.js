@@ -100,6 +100,8 @@ function runViewData() {
                 "View All Roles",
                 "View All Departments",
                 "View All Employees By Department",
+                "View All Employees by Manager",
+                "View Utilized Budget By Department",
                 "Return to Main Page"
             ]
         })
@@ -119,6 +121,14 @@ function runViewData() {
 
                 case "View All Employees By Department":
                     runViewEmployeesByDep();
+                    break;
+
+                case "View All Employees by Manager":
+                    runViewEmployeeByManager();
+                    break;
+                
+                case "View Utilized Budget By Department":
+                    runViewDepTotalBudget()
                     break;
 
                 case "Return to Main Page":
@@ -171,7 +181,7 @@ function runViewDepartments() {
     })
 };
 
-// view all employees by department – bonus
+// view all employees by department 
 function runViewEmployeesByDep() {
     var query = "SELECT * FROM departmentTable";
 
@@ -231,7 +241,116 @@ function runViewEmployeesByDep() {
 }
 
 // View all employees by manager – bonus
-// view department’s total utilized budget – bonus 
+function runViewEmployeeByManager() {
+    var query = "SELECT employeeTable.id AS employeeID, CONCAT(employeeTable.first_name, ' ', employeeTable.last_name) AS employee ";
+    query += "FROM employeeTable"
+
+    connection.query(query, function(error, response) {
+        if (error) throw error;
+
+        // will be filled with employees for user to choose from
+        let employeeOptions = [];
+
+        // populate employee options 
+        response.forEach(function({ employee }, i) {
+            employeeOptions.push(employee);
+        })
+
+        inquirer
+        .prompt([
+            {
+                name: "employeeChoice",
+                type: "list",
+                message: "Which employee do you want so see direct reports for?",
+                choices: employeeOptions 
+            }
+        ])
+        .then(function(response) {
+            // identify employee id
+            let employeeIndex = 0;
+            for (let i = 0; i < employeeOptions.length; i++) {
+                if (response.employeeChoice === employeeOptions[i]) {
+                    employeeIndex = i + 1;
+                }
+            }
+
+            var query = `SELECT employeeTable.id AS "ID" , employeeTable.first_name AS "Fist Name", employeeTable.last_name AS "Last Name", CONCAT(manager.first_name, ' ', manager.last_name) AS "Manager" `;
+            query += "FROM employeeTable ";
+            query += "LEFT JOIN employeeTable AS manager ON manager.id = employeeTable.manager_id ";
+            query += "WHERE CONCAT(employeeTable.first_name, ' ', employeeTable.last_name) = " + "'" + response.employeeChoice + "' ";
+
+            connection.query(query, function(error, response) {
+                    
+                if (error) throw error;
+                console.log(`\n`)
+                console.table(response);
+                runMainPage();
+            
+            })
+        })
+    })
+
+    
+}
+
+// view department’s total utilized budget  
+function runViewDepTotalBudget() {
+    var query = "SELECT * FROM departmentTable";
+
+    connection.query(query, function(error, response) {
+        // will be filled with unique departments for user to choose from
+        let departmentOptions = [];
+
+        // collect all unique department options
+        response.forEach(function({ department }, i) {
+            if (department) {
+                
+                for (var i = 0; i < department.length; i++){
+                    if(!departmentOptions.includes(department)){
+                        departmentOptions.push(department);
+                    }
+                    
+                }
+                
+            }
+        })
+
+        inquirer
+            .prompt([
+                {
+                    name: "viewDepName",
+                    type: "list",
+                    message: "Which department would you like to see utilized budget for?",
+                    choices: departmentOptions
+                }
+            ]) 
+            .then(function(response) {
+                // identify department id
+                let departmentIndex = 0;
+                for (let i = 0; i < departmentOptions.length; i++) {
+                    if (response.newRoleDepartment === departmentOptions[i]) {
+                        departmentIndex = i + 1;
+                    }
+                }
+
+                var query = 'SELECT departmentTable.id AS "ID", departmentTable.department AS "Department", SUM(roleTable.salary) AS "SALARY" ';
+                query += "FROM departmentTable ";
+                query += "INNER JOIN roleTable ON departmentTable.id = roleTable.department_id ";
+                query += "WHERE departmentTable.department = " + "'" + response.viewDepName + "' ";
+                query += "GROUP BY roleTable.department_id"
+
+                connection.query(query, function(error, response) {
+                    
+                        if (error) throw error;
+                        console.log(`\n`)
+                        console.table(response);
+                        runMainPage();
+                    
+                })
+            })
+    })
+     
+}
 
 // ADD DATA OPTION
 function runAddData() {
